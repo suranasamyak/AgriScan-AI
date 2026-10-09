@@ -217,7 +217,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
       });
 
       setCurrentResult(res.scan);
-      await refreshData();
+      //await refreshData();
     } catch (err: any) {
       setError(err.message || 'Analysis failed. Please check network connectivity.');
     } finally {
