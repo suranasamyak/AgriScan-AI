@@ -1,0 +1,6 @@
+{
+  "name": "AgroScan AI",
+  "description": "Detect Early. Track Smart. Protect Every Crop. AI-powered agricultural web application for Indian farmers with crop disease detection, live field tracking, disease risk forecasts, and Gemini agricultural assistance.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
