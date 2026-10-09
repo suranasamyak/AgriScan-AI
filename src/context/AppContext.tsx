@@ -2,6 +2,17 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User, Field, Scan, Alert, Language } from '../types';
 import { api } from '../services/api';
 import { getPendingSyncItems, clearPendingSyncQueue } from '../services/offlineDb';
+import {
+  TRANSLATIONS,
+  CROP_TRANSLATIONS,
+  DISEASE_TRANSLATIONS,
+  SEVERITY_TRANSLATIONS,
+  STATUS_TRANSLATIONS,
+  GROWTH_STAGE_TRANSLATIONS,
+  APPROACH_TRANSLATIONS,
+  TRAJECTORY_TRANSLATIONS,
+  SYMPTOM_TRANSLATIONS
+} from '../utils/translations';
 
 interface AppContextType {
   user: User | null;
@@ -20,91 +31,18 @@ interface AppContextType {
   loading: boolean;
   refreshData: () => Promise<void>;
   syncPendingQueue: () => Promise<void>;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
+  tCrop: (cropName: string) => string;
+  tDisease: (diseaseName: string) => string;
+  tSeverity: (sev: string) => string;
+  tStatus: (status?: string) => string;
+  tStage: (stage: string) => string;
+  tApproach: (approach: string) => string;
+  tTrajectory: (traj: string) => string;
+  tSymptom: (symptom: string) => string;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
-
-const TRANSLATIONS: Record<Language, Record<string, string>> = {
-  en: {
-    app_name: 'AgroScan AI',
-    tagline: 'Detect Early. Track Smart. Protect Every Crop.',
-    dashboard: 'Dashboard',
-    crop_scanner: 'AI Crop Scanner',
-    live_tracking: 'Live Field Tracking',
-    health_timeline: 'Crop Health Timeline',
-    risk_forecast: 'Disease Risk Forecast',
-    treatment_advisor: 'Treatment Advisor',
-    farmer_assistant: 'AI Farmer Assistant',
-    community_alerts: 'Community Alerts',
-    scan_history: 'Scan History',
-    reports: 'Reports & Analytics',
-    settings: 'Settings',
-    registered_fields: 'Registered Fields',
-    total_scans: 'Total Crop Scans',
-    inspections_needed: 'Action Needed',
-    healthy_crops: 'Healthy Foliage',
-    demo_badge: 'DEMO DATA',
-    demo_mode_active: 'Demonstration Account Active',
-    offline_mode: 'Offline Mode Active',
-    sync_now: 'Sync Pending Actions',
-    register_field: 'Register Field',
-    start_scan: 'New Crop Scan',
-    ask_ai: 'Ask Kisan Assistant'
-  },
-  hi: {
-    app_name: 'एग्रोस्कैन एआई',
-    tagline: 'समय पर पहचानें. स्मार्ट ट्रैक करें. हर फसल बचाएं.',
-    dashboard: 'डैशबोर्ड',
-    crop_scanner: 'एआई फसल स्कैनर',
-    live_tracking: 'लाइव खेत ट्रैकिंग',
-    health_timeline: 'फसल स्वास्थ्य टाइमलाइन',
-    risk_forecast: 'रोग जोखिम पूर्वानुमान',
-    treatment_advisor: 'उपचार सलाहकार',
-    farmer_assistant: 'किसान एआई मित्र',
-    community_alerts: 'सामुदायिक अलर्ट',
-    scan_history: 'स्कैन इतिहास',
-    reports: 'रिपोर्ट एवं विश्लेषण',
-    settings: 'सेटिंग्स',
-    registered_fields: 'पंजीकृत खेत',
-    total_scans: 'कुल फसल स्कैन',
-    inspections_needed: 'निरीक्षण आवश्यक',
-    healthy_crops: 'स्वस्थ फसलें',
-    demo_badge: 'डेमो डेटा',
-    demo_mode_active: 'प्रदर्शन खाता सक्रिय',
-    offline_mode: 'ऑफ़लाइन मोड सक्रिय',
-    sync_now: 'सिंक करें',
-    register_field: 'खेत जोड़ें',
-    start_scan: 'नया स्कैन करें',
-    ask_ai: 'किसान मित्र से पूछें'
-  },
-  mr: {
-    app_name: 'ॲग्रोस्कॅन एआय',
-    tagline: 'लवकर ओळखा. स्मार्ट ट्रॅक करा. प्रत्येक पीक वाचवा.',
-    dashboard: 'डॅशबोर्ड',
-    crop_scanner: 'एआय पीक स्कॅनर',
-    live_tracking: 'थेट शेत ट्रॅकिंग',
-    health_timeline: 'पीक आरोग्य टाइमलाइन',
-    risk_forecast: 'रोग जोखीम अंदाज',
-    treatment_advisor: 'उपचार सल्लागार',
-    farmer_assistant: 'शेतकरी एआय मित्र',
-    community_alerts: 'समुदाय सूचना',
-    scan_history: 'स्कॅन इतिहास',
-    reports: 'अहवाल आणि विश्लेषण',
-    settings: 'सेटिंग्ज',
-    registered_fields: 'नोंदणीकृत शेतं',
-    total_scans: 'एकूण पीक स्कॅन्स',
-    inspections_needed: 'तपासणी आवश्यक',
-    healthy_crops: 'निरोगी पिके',
-    demo_badge: 'डेमो डेटा',
-    demo_mode_active: 'डेमो खाते सक्रिय',
-    offline_mode: 'ऑफलाइन मोड',
-    sync_now: 'माहिती सिंक करा',
-    register_field: 'शेत नोंदणी करा',
-    start_scan: 'नवीन स्कॅन करा',
-    ask_ai: 'शेतकरी मित्राशी बोला'
-  }
-};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -132,8 +70,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('agroscan_demo_mode', val ? 'true' : 'false');
   };
 
-  const t = useCallback((key: string): string => {
-    return TRANSLATIONS[language]?.[key] || TRANSLATIONS['en']?.[key] || key;
+  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
+    let text = TRANSLATIONS[language]?.[key] || TRANSLATIONS['en']?.[key] || key;
+    if (params) {
+      Object.entries(params).forEach(([paramKey, val]) => {
+        text = text.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(val));
+      });
+    }
+    return text;
+  }, [language]);
+
+  const tCrop = useCallback((cropName: string): string => {
+    return CROP_TRANSLATIONS[language]?.[cropName] || CROP_TRANSLATIONS['en']?.[cropName] || cropName;
+  }, [language]);
+
+  const tDisease = useCallback((diseaseName: string): string => {
+    return DISEASE_TRANSLATIONS[language]?.[diseaseName] || DISEASE_TRANSLATIONS['en']?.[diseaseName] || diseaseName;
+  }, [language]);
+
+  const tSeverity = useCallback((sev: string): string => {
+    return SEVERITY_TRANSLATIONS[language]?.[sev] || SEVERITY_TRANSLATIONS['en']?.[sev] || sev;
+  }, [language]);
+
+  const tStatus = useCallback((status?: string): string => {
+    if (!status) return STATUS_TRANSLATIONS[language]?.['uninspected'] || 'Uninspected';
+    return STATUS_TRANSLATIONS[language]?.[status] || STATUS_TRANSLATIONS['en']?.[status] || status;
+  }, [language]);
+
+  const tStage = useCallback((stage: string): string => {
+    return GROWTH_STAGE_TRANSLATIONS[language]?.[stage] || GROWTH_STAGE_TRANSLATIONS['en']?.[stage] || stage;
+  }, [language]);
+
+  const tApproach = useCallback((approach: string): string => {
+    return APPROACH_TRANSLATIONS[language]?.[approach] || APPROACH_TRANSLATIONS['en']?.[approach] || approach;
+  }, [language]);
+
+  const tTrajectory = useCallback((traj: string): string => {
+    return TRAJECTORY_TRANSLATIONS[language]?.[traj] || TRAJECTORY_TRANSLATIONS['en']?.[traj] || traj;
+  }, [language]);
+
+  const tSymptom = useCallback((symptom: string): string => {
+    return SYMPTOM_TRANSLATIONS[language]?.[symptom] || SYMPTOM_TRANSLATIONS['en']?.[symptom] || symptom;
   }, [language]);
 
   const checkPendingSync = useCallback(async () => {
@@ -245,7 +222,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         loading,
         refreshData,
         syncPendingQueue,
-        t
+        t,
+        tCrop,
+        tDisease,
+        tSeverity,
+        tStatus,
+        tStage,
+        tApproach,
+        tTrajectory,
+        tSymptom
       }}
     >
       {children}

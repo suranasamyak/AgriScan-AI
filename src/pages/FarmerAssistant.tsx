@@ -45,7 +45,7 @@ const PRESET_QUESTIONS: Record<Language, string[]> = {
 };
 
 export const FarmerAssistant: React.FC = () => {
-  const { language, setLanguage, activeField, scans } = useApp();
+  const { language, setLanguage, activeField, scans, t } = useApp();
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -61,6 +61,29 @@ export const FarmerAssistant: React.FC = () => {
       language
     }
   ]);
+
+  // Keep welcome message updated with language if only welcome is present
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [
+          {
+            id: 'welcome',
+            sender: 'assistant',
+            text:
+              language === 'mr'
+                ? 'नमस्कार शेतकरी बंधू! मी तुमचा ॲग्रोस्कॅन किसान एआय मित्र आहे. पिकांचे आजार, फवारणीचे वेळापत्रक, जैविक उपाय किंवा हवामान जोखमीबद्दल मला काहीही विचारा!'
+                : language === 'hi'
+                ? 'नमस्ते किसान भाई! मैं आपका एग्रोस्कैन किसान एआई मित्र हूँ। फसल के रोगों, छिड़काव की सही विधि या मौसम के जोखिम पर आप मुझसे कोई भी सवाल पूछ सकते हैं।'
+                : 'Namaste Kisan Friend! I am your AgroScan AI Assistant. Ask me anything about crop diseases, organic IPM management, weather-driven risks, or scan confidence scores.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            language
+          }
+        ];
+      }
+      return prev;
+    });
+  }, [language]);
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -132,13 +155,13 @@ export const FarmerAssistant: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            AI Farmer Assistant (Kisan Mitra)
+            {t('assistant_title')}
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-              Gemini 3.8 Flash
+              {t('badge_gemini')}
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            Multilingual agricultural decision support in Marathi, Hindi, and English.
+            {t('assistant_sub')}
           </p>
         </div>
 
@@ -222,7 +245,7 @@ export const FarmerAssistant: React.FC = () => {
               </div>
               <div className="p-4 rounded-3xl bg-slate-50 border border-slate-200 text-xs text-slate-500 rounded-tl-xs flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                <span>Kisan Mitra is formulating agronomic guidance...</span>
+                <span>{t('kisan_mitra_thinking')}</span>
               </div>
             </div>
           )}
@@ -232,7 +255,7 @@ export const FarmerAssistant: React.FC = () => {
 
         {/* Suggested Quick Prompt Chips */}
         <div className="px-5 py-2.5 bg-slate-50/80 border-t border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] font-bold text-slate-400 shrink-0">Suggestions:</span>
+          <span className="text-[11px] font-bold text-slate-400 shrink-0">{t('suggestions_label')}</span>
           {(PRESET_QUESTIONS[language] || PRESET_QUESTIONS.en).map((q, idx) => (
             <button
               key={idx}

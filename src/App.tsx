@@ -15,21 +15,8 @@ import { ScanHistory } from './pages/ScanHistory';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 
-const NAV_TITLES: Record<NavItem, string> = {
-  dashboard: 'Agricultural Dashboard',
-  scanner: 'AI Crop Diagnostic Scanner',
-  live_tracking: 'Live Field GPS Tracking',
-  timeline: 'Crop Disease Progress Timeline',
-  risk: 'Disease Risk Forecast',
-  treatment: 'Treatment Decision Support',
-  assistant: 'AI Farmer Assistant (Kisan Mitra)',
-  community: 'Community Disease Alerts',
-  history: 'Foliar Scan Archives',
-  reports: 'Reports & Export Analytics',
-  settings: 'System Settings & Profile'
-};
-
 const AppContent: React.FC = () => {
+  const { t } = useApp();
   const [currentNav, setCurrentNav] = useState<NavItem>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
@@ -56,7 +43,7 @@ const AppContent: React.FC = () => {
       <div className="lg:pl-72 flex-1 flex flex-col min-h-screen">
         {/* Header */}
         <Header
-          currentTitle={NAV_TITLES[currentNav]}
+          currentTitle={t(`nav_title_${currentNav}`)}
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           onOpenNewScan={handleOpenNewScan}
           onOpenNewField={handleOpenNewField}

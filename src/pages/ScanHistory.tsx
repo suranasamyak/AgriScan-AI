@@ -2,15 +2,9 @@ import React, { useState } from 'react';
 import {
   History,
   Search,
-  Filter,
   Trash2,
   Eye,
-  Calendar,
   Sprout,
-  ShieldAlert,
-  CheckCircle2,
-  Download,
-  AlertTriangle,
   X
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -19,7 +13,7 @@ import { Scan } from '../types';
 import { ConfidenceGuardBadge } from '../components/ConfidenceGuardBadge';
 
 export const ScanHistory: React.FC = () => {
-  const { scans, refreshData } = useApp();
+  const { scans, refreshData, t, tCrop, tDisease, tSeverity, tSymptom } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCrop, setSelectedCrop] = useState('ALL');
   const [selectedSeverity, setSelectedSeverity] = useState('ALL');
@@ -40,10 +34,10 @@ export const ScanHistory: React.FC = () => {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('Delete this scan record permanently?')) return;
+    if (!window.confirm(t('delete_scan_confirm'))) return;
     try {
       setDeletingId(id);
-      await api.deleteField(id); // handled via delete endpoint
+      await api.deleteField(id);
       await fetch(`/api/scans/${id}`, { method: 'DELETE' });
       await refreshData();
     } catch (err) {
@@ -61,13 +55,13 @@ export const ScanHistory: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Historical Scan Archives
+            {t('scan_history_title')}
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-              {scans.length} Total Records
+              {scans.length} {t('total')}
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            Search, filter, and inspect past foliar diagnostic images and confidence guarding results.
+            {t('scan_history_sub')}
           </p>
         </div>
       </div>
@@ -78,7 +72,7 @@ export const ScanHistory: React.FC = () => {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by condition, field, or crop..."
+            placeholder={t('search_placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-emerald-600 bg-slate-50 focus:bg-white"
@@ -89,12 +83,12 @@ export const ScanHistory: React.FC = () => {
           <select
             value={selectedCrop}
             onChange={(e) => setSelectedCrop(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white focus:outline-none cursor-pointer"
           >
-            <option value="ALL">All Crops</option>
+            <option value="ALL">{t('all_crops')}</option>
             {crops.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {tCrop(c)}
               </option>
             ))}
           </select>
@@ -102,13 +96,13 @@ export const ScanHistory: React.FC = () => {
           <select
             value={selectedSeverity}
             onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white focus:outline-none"
+            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white focus:outline-none cursor-pointer"
           >
-            <option value="ALL">All Severities</option>
-            <option value="None">None (Healthy)</option>
-            <option value="Mild">Mild</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Severe">Severe</option>
+            <option value="ALL">{t('all_severities')}</option>
+            <option value="None">{t('none_healthy')}</option>
+            <option value="Mild">{t('mild')}</option>
+            <option value="Moderate">{t('moderate')}</option>
+            <option value="Severe">{t('severe')}</option>
           </select>
         </div>
       </div>
@@ -117,7 +111,7 @@ export const ScanHistory: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         {filteredScans.length === 0 ? (
           <div className="py-16 text-center text-xs text-slate-400">
-            No diagnostic scans match your search filters.
+            {t('no_matching_scans')}
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -143,9 +137,9 @@ export const ScanHistory: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h4 className="font-bold text-sm text-slate-900">
-                        {scan.predictedCondition}
+                        {tDisease(scan.predictedCondition)}
                       </h4>
-                      <span className="text-xs text-slate-500 font-medium">• {scan.cropType}</span>
+                      <span className="text-xs text-slate-500 font-medium">• {tCrop(scan.cropType)}</span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           scan.severity === 'Severe'
@@ -155,7 +149,7 @@ export const ScanHistory: React.FC = () => {
                             : 'bg-emerald-100 text-emerald-700'
                         }`}
                       >
-                        {scan.severity} Severity
+                        {tSeverity(scan.severity)}
                       </span>
                     </div>
 
@@ -181,14 +175,16 @@ export const ScanHistory: React.FC = () => {
                         e.stopPropagation();
                         setActiveModalScan(scan);
                       }}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-slate-100"
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-slate-100 cursor-pointer"
+                      title={t('view_details')}
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
                       onClick={(e) => handleDelete(scan.id, e)}
                       disabled={deletingId === scan.id}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer disabled:opacity-50"
+                      title={t('delete_scan')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -206,14 +202,14 @@ export const ScanHistory: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200">
             <div className="bg-[#143324] text-white p-5 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-lg">{activeModalScan.predictedCondition}</h3>
+                <h3 className="font-bold text-lg">{tDisease(activeModalScan.predictedCondition)}</h3>
                 <p className="text-xs text-emerald-300">
-                  {activeModalScan.cropType} • {activeModalScan.fieldName}
+                  {tCrop(activeModalScan.cropType)} • {activeModalScan.fieldName}
                 </p>
               </div>
               <button
                 onClick={() => setActiveModalScan(null)}
-                className="text-emerald-300 hover:text-white"
+                className="text-emerald-300 hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -234,19 +230,19 @@ export const ScanHistory: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400">Confidence</span>
+                  <span className="text-slate-400">{t('confidence')}</span>
                   <p className="font-bold text-slate-800 text-sm mt-0.5">
                     {activeModalScan.confidence.toFixed(1)}%
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400">Severity</span>
+                  <span className="text-slate-400">{t('severity')}</span>
                   <p className="font-bold text-slate-800 text-sm mt-0.5">
-                    {activeModalScan.severity}
+                    {tSeverity(activeModalScan.severity)}
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-slate-400">Affected Area</span>
+                  <span className="text-slate-400">{t('affected_leaf_area')}</span>
                   <p className="font-bold text-slate-800 text-sm mt-0.5">
                     {activeModalScan.affectedAreaPercentage || 0}%
                   </p>
@@ -255,10 +251,10 @@ export const ScanHistory: React.FC = () => {
 
               {activeModalScan.symptoms && (
                 <div className="space-y-1.5 text-xs">
-                  <h4 className="font-bold text-slate-700">Symptoms:</h4>
+                  <h4 className="font-bold text-slate-700">{t('observed_symptoms_heading')}:</h4>
                   <ul className="list-disc list-inside space-y-1 text-slate-600">
                     {activeModalScan.symptoms.map((s, i) => (
-                      <li key={i}>{s}</li>
+                      <li key={i}>{tSymptom(s)}</li>
                     ))}
                   </ul>
                 </div>
@@ -266,7 +262,7 @@ export const ScanHistory: React.FC = () => {
 
               {activeModalScan.recommendedSteps && (
                 <div className="space-y-1.5 text-xs">
-                  <h4 className="font-bold text-slate-700">Recommended Steps:</h4>
+                  <h4 className="font-bold text-slate-700">{t('recommended_ipm_heading')}:</h4>
                   <ul className="list-disc list-inside space-y-1 text-slate-600">
                     {activeModalScan.recommendedSteps.map((s, i) => (
                       <li key={i}>{s}</li>

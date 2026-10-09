@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { X, MapPin, Navigation, Sprout, Calendar, Layers, FileText } from 'lucide-react';
+import { X, MapPin, Navigation, Sprout } from 'lucide-react';
 import { api } from '../services/api';
 import { useApp } from '../context/AppContext';
-import { Field } from '../types';
 
 interface FieldModalProps {
   isOpen: boolean;
@@ -11,7 +10,7 @@ interface FieldModalProps {
 }
 
 export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { refreshData } = useApp();
+  const { refreshData, t, tCrop } = useApp();
   const [name, setName] = useState('');
   const [cropType, setCropType] = useState('Tomato');
   const [area, setArea] = useState('2.5');
@@ -53,7 +52,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
         setGettingLocation(false);
       },
       (err) => {
-        setError(`Location access denied or timed out (${err.message}). Coordinates remain at field reference.`);
+        setError(`Location access: ${err.message}`);
         setGettingLocation(false);
       },
       { timeout: 10000, enableHighAccuracy: true }
@@ -63,7 +62,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Field name is required.');
+      setError(t('field_name_label'));
       return;
     }
     try {
@@ -73,7 +72,6 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
       const lat = parseFloat(latitude) || 19.9975;
       const lng = parseFloat(longitude) || 73.7898;
 
-      // Generate a quadrilateral boundary around the coordinates
       const delta = 0.0012;
       const boundary = [
         [lat - delta, lng - delta],
@@ -113,8 +111,8 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
               <Sprout className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Register Agricultural Field</h2>
-              <p className="text-xs text-emerald-300">Add plot for AI health tracking & satellite weather</p>
+              <h2 className="text-lg font-bold">{t('register_field_modal_title')}</h2>
+              <p className="text-xs text-emerald-300">{t('register_field_modal_sub')}</p>
             </div>
           </div>
           <button
@@ -135,12 +133,12 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Field Name / Identifier *
+              {t('field_name_label')}
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Malegaon Plot - Tomato Block B"
+              placeholder={t('field_name_placeholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-sm font-medium focus:outline-none"
@@ -150,7 +148,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Crop Type *
+                {t('crop_type')}
               </label>
               <select
                 value={cropType}
@@ -159,7 +157,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
               >
                 {crops.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {tCrop(c)}
                   </option>
                 ))}
               </select>
@@ -167,7 +165,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Field Area (Acres) *
+                {t('field_area_label')}
               </label>
               <input
                 type="number"
@@ -183,7 +181,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Sowing / Planting Date
+              {t('sowing_date_label')}
             </label>
             <input
               type="date"
@@ -198,7 +196,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-emerald-700" />
-                Geographic Coordinates
+                {t('geographic_coords')}
               </span>
               <button
                 type="button"
@@ -207,13 +205,13 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors disabled:opacity-60"
               >
                 <Navigation className={`w-3.5 h-3.5 ${gettingLocation ? 'animate-spin' : ''}`} />
-                {gettingLocation ? 'Acquiring GPS...' : 'Use My GPS'}
+                {gettingLocation ? t('acquiring_gps') : t('use_my_gps')}
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-medium text-slate-600">Latitude</label>
+                <label className="text-[11px] font-medium text-slate-600">{t('lat_label')}</label>
                 <input
                   type="text"
                   required
@@ -223,7 +221,7 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
                 />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-slate-600">Longitude</label>
+                <label className="text-[11px] font-medium text-slate-600">{t('lng_label')}</label>
                 <input
                   type="text"
                   required
@@ -234,17 +232,17 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
               </div>
             </div>
             <p className="text-[10px] text-slate-500">
-              Enables Open-Meteo microclimate weather and spatial cluster mapping.
+              {t('coords_sub')}
             </p>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Agronomic Notes & Variety Details (Optional)
+              {t('notes_label')}
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Drip irrigated, black loam soil, certified F1 hybrid seed."
+              placeholder={t('notes_placeholder')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 text-xs font-medium focus:outline-none"
@@ -258,14 +256,14 @@ export const FieldModal: React.FC<FieldModalProps> = ({ isOpen, onClose, onSucce
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-50"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-900/20 disabled:opacity-60 flex items-center gap-1.5"
             >
-              {submitting ? 'Registering...' : 'Save Field'}
+              {submitting ? t('saving_field') : t('save_field_btn')}
             </button>
           </div>
         </form>

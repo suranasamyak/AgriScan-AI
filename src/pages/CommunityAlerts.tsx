@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
   Users,
-  ShieldCheck,
-  AlertTriangle,
   MapPin,
-  Calendar,
   Plus,
-  CheckCircle,
-  HelpCircle,
-  Filter,
-  Sparkles,
   Info
 } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 import { CommunityObservation } from '../types';
 
 export const CommunityAlerts: React.FC = () => {
+  const { t, tCrop, tDisease } = useApp();
   const [alerts, setAlerts] = useState<CommunityObservation[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -28,6 +23,8 @@ export const CommunityAlerts: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [reporterAlias, setReporterAlias] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const crops = ['Tomato', 'Cotton', 'Soybean', 'Wheat', 'Rice', 'Potato', 'Maize', 'Sugarcane', 'Chilli', 'Onion', 'Grape'];
 
   useEffect(() => {
     loadAlerts();
@@ -82,22 +79,22 @@ export const CommunityAlerts: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Regional Community Crop Alerts
+            {t('community_title')}
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-              Crowdsourced Early Warning
+              {t('community_alerts')}
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            District-level disease symptom sightings shared by neighboring farmers. Individual coordinates and private plots are protected.
+            {t('community_sub')}
           </p>
         </div>
 
         <button
           onClick={() => setShowSubmitModal(true)}
-          className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-2 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Report Sighting</span>
+          <span>{t('report_sighting')}</span>
         </button>
       </div>
 
@@ -114,41 +111,41 @@ export const CommunityAlerts: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                {dist} District
+                {dist} {t('district_suffix')}
               </span>
               {count >= 2 && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
-                  Cluster Watch
+                  {t('cluster_watch')}
                 </span>
               )}
             </div>
             <p className="text-xl font-extrabold text-slate-900">
-              {count} Reported Sighting{count > 1 ? 's' : ''}
+              {t('reported_sightings', { count })}
             </p>
             <p className="text-[11px] text-slate-500">
               {count >= 2
-                ? 'Elevated regional cluster activity. Inspect border hedges.'
-                : 'Isolated observation recorded.'}
+                ? t('cluster_warning')
+                : t('isolated_sighting')}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Privacy Guarantee Notice from brief */}
+      {/* Privacy Guarantee Notice */}
       <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 text-emerald-950 text-xs flex items-start gap-2.5">
         <Info className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <b>Farmer Privacy Guard:</b> Community reports are strictly anonymized and aggregated at the taluka/district level. Exact farm GPS boundaries and private land identities are never exposed publicly.
+          <b>{t('privacy_notice_title')}</b> {t('privacy_notice_text')}
         </p>
       </div>
 
       {/* Observation Feed Cards */}
       <div className="space-y-3">
-        <h3 className="font-bold text-sm text-slate-900">Recent Farmer Sightings</h3>
+        <h3 className="font-bold text-sm text-slate-900">{t('recent_sightings')}</h3>
 
         {alerts.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center text-xs text-slate-400">
-            No community reports recorded for your region yet.
+            {t('no_active_alerts')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,9 +158,9 @@ export const CommunityAlerts: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-slate-900">
-                        {item.suspectedDisease}
+                        {tDisease(item.suspectedDisease)}
                       </span>
-                      <span className="text-xs text-slate-500">• {item.cropType}</span>
+                      <span className="text-xs text-slate-500">• {tCrop(item.cropType)}</span>
                     </div>
                     <p className="text-xs text-slate-600 flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3.5 h-3.5 text-emerald-700" />
@@ -180,7 +177,7 @@ export const CommunityAlerts: React.FC = () => {
                         : 'bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {item.verified ? '✓ KVK Verified' : 'Unverified Field Report'}
+                    {item.verified ? t('kvk_verified') : t('unverified_report')}
                   </span>
                 </div>
 
@@ -191,7 +188,7 @@ export const CommunityAlerts: React.FC = () => {
                 )}
 
                 <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100">
-                  <span>Reported by: {item.reporterAlias}</span>
+                  <span>{t('reported_by', { name: item.reporterAlias })}</span>
                   <span>{new Date(item.observationDate).toLocaleDateString()}</span>
                 </div>
               </div>
@@ -206,14 +203,14 @@ export const CommunityAlerts: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
             <div className="bg-[#143324] text-white p-5 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-base">Submit Community Field Report</h3>
+                <h3 className="font-bold text-base">{t('submit_report_title')}</h3>
                 <p className="text-xs text-emerald-300">
-                  Help neighboring farmers detect local pest & pathogen clusters
+                  {t('submit_report_sub')}
                 </p>
               </div>
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="text-emerald-300 hover:text-white"
+                className="text-emerald-300 hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -221,24 +218,23 @@ export const CommunityAlerts: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="p-5 space-y-3.5 text-xs">
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Crop Type *</label>
+                <label className="font-semibold text-slate-700 block mb-1">{t('crop_type_label')} *</label>
                 <select
                   value={cropType}
                   onChange={(e) => setCropType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white cursor-pointer"
                 >
-                  <option value="Tomato">Tomato</option>
-                  <option value="Cotton">Cotton</option>
-                  <option value="Soybean">Soybean</option>
-                  <option value="Wheat">Wheat</option>
-                  <option value="Rice">Rice</option>
-                  <option value="Potato">Potato</option>
+                  {crops.map((c) => (
+                    <option key={c} value={c}>
+                      {tCrop(c)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  Suspected Pathogen / Symptoms *
+                  {t('target_pathogen')} *
                 </label>
                 <input
                   type="text"
@@ -252,7 +248,7 @@ export const CommunityAlerts: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">District *</label>
+                  <label className="font-semibold text-slate-700 block mb-1">{t('district_label')}</label>
                   <input
                     type="text"
                     required
@@ -262,7 +258,7 @@ export const CommunityAlerts: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-slate-700 block mb-1">State</label>
+                  <label className="font-semibold text-slate-700 block mb-1">{t('state_label')}</label>
                   <input
                     type="text"
                     value={state}
@@ -274,7 +270,7 @@ export const CommunityAlerts: React.FC = () => {
 
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  Field Observations (Damage degree, weather conditions)
+                  {t('field_obs_label')}
                 </label>
                 <textarea
                   rows={2}
@@ -287,7 +283,7 @@ export const CommunityAlerts: React.FC = () => {
 
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  Your Alias (Optional - will be public)
+                  {t('alias_label')}
                 </label>
                 <input
                   type="text"
@@ -302,16 +298,16 @@ export const CommunityAlerts: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowSubmitModal(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300"
+                  className="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 cursor-pointer"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 cursor-pointer disabled:opacity-50"
                 >
-                  {submitting ? 'Submitting...' : 'Post Report'}
+                  {submitting ? t('posting') : t('post_report')}
                 </button>
               </div>
             </form>

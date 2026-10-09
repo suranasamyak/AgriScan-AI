@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AgroScan AI 🌾
 > *"Detect Early. Track Smart. Protect Every Crop."*
 
@@ -149,6 +148,3 @@ AgroScan AI includes a pre-calibrated Hackathon Demonstration Dataset for Ramesh
 ## 🛡️ License & Ethical Agronomy Statement
 
 AgroScan AI is designed to empower smallholder farmers. All diagnostic insights follow the Integrated Pest Management (IPM) guidelines published by the Indian Council of Agricultural Research (ICAR). Treatment prescriptions encourage cultural sanitization and bio-control before chemical intervention.
-=======
-# AgriScan-AI
->>>>>>> origin/main

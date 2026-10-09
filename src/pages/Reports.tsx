@@ -1,21 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  BarChart3,
-  Download,
   Printer,
-  Sprout,
-  ScanLine,
-  AlertTriangle,
-  CheckCircle2,
-  PieChart as PieIcon,
-  TrendingUp,
   FileSpreadsheet
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
 
 export const Reports: React.FC = () => {
-  const { fields, scans, isDemoMode } = useApp();
+  const { fields, scans, isDemoMode, t, tCrop, tDisease, tSeverity } = useApp();
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -84,30 +76,30 @@ export const Reports: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Agronomic Reports & Loss Risk Analytics
+            {t('reports_title')}
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-              Export Ready
+              v2.4
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            Synthesized epidemiological metrics, severity distribution, and field scouting audits.
+            {t('reports_sub')}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportCSV}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200"
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
-            <span>Export CSV</span>
+            <span>{t('export_csv')}</span>
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Report</span>
+            <span>{t('print_report')}</span>
           </button>
         </div>
       </div>
@@ -117,53 +109,53 @@ export const Reports: React.FC = () => {
         <div className="flex items-start justify-between pb-4 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl text-emerald-950">AgroScan AI</span>
-              <span className="text-xs text-slate-400 font-mono">v2.4 Audit Report</span>
+              <span className="font-extrabold text-xl text-emerald-950">{t('app_name')}</span>
+              <span className="text-xs text-slate-400 font-mono">{t('audit_report')}</span>
               {isDemoMode && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
-                  DEMO DATA INCLUDED
+                  {t('demo_badge')}
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Agricultural Disease Scouting & Health Trajectory Summary
+              {t('audit_sub')}
             </p>
           </div>
           <div className="text-right text-xs text-slate-400 font-mono">
-            Generated: {new Date().toLocaleDateString()}
+            {t('generated_date', { date: new Date().toLocaleDateString() })}
           </div>
         </div>
 
         {/* 4 Summary Stat Tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold uppercase">Total Acreage</span>
+            <span className="text-xs text-slate-500 font-semibold uppercase">{t('total_acreage')}</span>
             <p className="text-2xl font-extrabold text-slate-900 mt-1">
-              {summary?.totalAreaAcres?.toFixed(1) || fields.reduce((a, b) => a + b.area, 0).toFixed(1)} ac
+              {summary?.totalAreaAcres?.toFixed(1) || fields.reduce((a, b) => a + b.area, 0).toFixed(1)} {t('ac')}
             </p>
-            <p className="text-[11px] text-slate-400">{fields.length} Registered Plots</p>
+            <p className="text-[11px] text-slate-400">{t('registered_plots', { count: fields.length })}</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold uppercase">Total AI Scans</span>
+            <span className="text-xs text-slate-500 font-semibold uppercase">{t('total_scans')}</span>
             <p className="text-2xl font-extrabold text-slate-900 mt-1">{scans.length}</p>
-            <p className="text-[11px] text-slate-400">Diagnostic Checkpoints</p>
+            <p className="text-[11px] text-slate-400">{t('diagnostic_checkpoints')}</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold uppercase">Average Confidence</span>
+            <span className="text-xs text-slate-500 font-semibold uppercase">{t('avg_confidence')}</span>
             <p className="text-2xl font-extrabold text-emerald-700 mt-1">
               {summary?.averageConfidence || 90.2}%
             </p>
-            <p className="text-[11px] text-slate-400">Vision + Guard Ensemble</p>
+            <p className="text-[11px] text-slate-400">{t('vision_guard')}</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold uppercase">Action Required</span>
+            <span className="text-xs text-slate-500 font-semibold uppercase">{t('inspections_needed')}</span>
             <p className="text-2xl font-extrabold text-rose-600 mt-1">
               {fields.filter((f) => f.healthStatus === 'critical' || f.healthStatus === 'moderate').length}
             </p>
-            <p className="text-[11px] text-slate-400">Active High-Risk Plots</p>
+            <p className="text-[11px] text-slate-400">{t('active_high_risk')}</p>
           </div>
         </div>
 
@@ -171,7 +163,7 @@ export const Reports: React.FC = () => {
         {summary?.conditionsDistribution && (
           <div className="space-y-3 pt-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Pathogen & Disease Condition Breakdown
+              {t('condition_breakdown')}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(summary.conditionsDistribution).map(([cond, count]: any) => (
@@ -179,7 +171,7 @@ export const Reports: React.FC = () => {
                   key={cond}
                   className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between"
                 >
-                  <span className="text-xs font-bold text-slate-800">{cond}</span>
+                  <span className="text-xs font-bold text-slate-800">{tDisease(cond)}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-24 bg-slate-200 h-2 rounded-full overflow-hidden">
                       <div
@@ -190,7 +182,7 @@ export const Reports: React.FC = () => {
                       />
                     </div>
                     <span className="text-xs font-bold font-mono text-slate-600">
-                      {count} scan{count > 1 ? 's' : ''}
+                      {count}
                     </span>
                   </div>
                 </div>
@@ -202,18 +194,18 @@ export const Reports: React.FC = () => {
         {/* Audit Table of Recent Records */}
         <div className="space-y-3 pt-2">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-            Detailed Audit Trail (Recent 6 Records)
+            {t('detailed_audit')}
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500">
-                  <th className="py-2.5 font-semibold">Date</th>
-                  <th className="py-2.5 font-semibold">Field</th>
-                  <th className="py-2.5 font-semibold">Crop</th>
-                  <th className="py-2.5 font-semibold">Diagnosed Condition</th>
-                  <th className="py-2.5 font-semibold">Severity</th>
-                  <th className="py-2.5 font-semibold">Confidence</th>
+                  <th className="py-2.5 font-semibold">{t('date_col')}</th>
+                  <th className="py-2.5 font-semibold">{t('field_col')}</th>
+                  <th className="py-2.5 font-semibold">{t('crop_col')}</th>
+                  <th className="py-2.5 font-semibold">{t('condition_col')}</th>
+                  <th className="py-2.5 font-semibold">{t('severity_col')}</th>
+                  <th className="py-2.5 font-semibold">{t('confidence_col')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -223,9 +215,9 @@ export const Reports: React.FC = () => {
                       {new Date(s.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-2.5 font-medium">{s.fieldName}</td>
-                    <td className="py-2.5">{s.cropType}</td>
-                    <td className="py-2.5 font-bold text-slate-900">{s.predictedCondition}</td>
-                    <td className="py-2.5 font-semibold">{s.severity}</td>
+                    <td className="py-2.5">{tCrop(s.cropType)}</td>
+                    <td className="py-2.5 font-bold text-slate-900">{tDisease(s.predictedCondition)}</td>
+                    <td className="py-2.5 font-semibold">{tSeverity(s.severity)}</td>
                     <td className="py-2.5 font-mono">{s.confidence.toFixed(1)}%</td>
                   </tr>
                 ))}
@@ -237,7 +229,7 @@ export const Reports: React.FC = () => {
         {/* Verification and Regulatory Statement */}
         <div className="pt-4 border-t border-slate-200 text-[11px] text-slate-500 leading-relaxed">
           <p>
-            <b>Compliance Notice:</b> All crop protection recommendations generated in this report are based on Integrated Pest Management (IPM) guidelines published by the Indian Council of Agricultural Research (ICAR) and State Agricultural Universities (SAUs). Consult local Krishi Vigyan Kendra (KVK) for regional chemical approvals and pre-harvest intervals.
+            {t('compliance_notice')}
           </p>
         </div>
       </div>

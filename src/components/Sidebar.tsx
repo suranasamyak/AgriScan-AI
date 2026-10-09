@@ -49,12 +49,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'dashboard', label: t('dashboard'), icon: <LayoutDashboard className="w-5 h-5" /> },
-    { id: 'scanner', label: t('crop_scanner'), icon: <ScanLine className="w-5 h-5" />, badge: 'AI Vision' },
-    { id: 'live_tracking', label: t('live_tracking'), icon: <MapPin className="w-5 h-5" />, badge: 'GPS Map' },
+    { id: 'scanner', label: t('crop_scanner'), icon: <ScanLine className="w-5 h-5" />, badge: t('badge_ai_vision') },
+    { id: 'live_tracking', label: t('live_tracking'), icon: <MapPin className="w-5 h-5" />, badge: t('badge_gps_map') },
     { id: 'timeline', label: t('health_timeline'), icon: <Clock3 className="w-5 h-5" /> },
     { id: 'risk', label: t('risk_forecast'), icon: <CloudRain className="w-5 h-5" /> },
     { id: 'treatment', label: t('treatment_advisor'), icon: <ShieldAlert className="w-5 h-5" /> },
-    { id: 'assistant', label: t('farmer_assistant'), icon: <Bot className="w-5 h-5" />, badge: 'Gemini' },
+    { id: 'assistant', label: t('farmer_assistant'), icon: <Bot className="w-5 h-5" />, badge: t('badge_gemini') },
     { id: 'community', label: t('community_alerts'), icon: <Users className="w-5 h-5" /> },
     { id: 'history', label: t('scan_history'), icon: <History className="w-5 h-5" /> },
     { id: 'reports', label: t('reports'), icon: <BarChart3 className="w-5 h-5" /> },
@@ -84,21 +84,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-lg tracking-tight text-white">AgroScan AI</span>
+                <span className="font-bold text-lg tracking-tight text-white">{t('app_name')}</span>
                 <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   v2.4
                 </span>
               </div>
-              <p className="text-xs text-emerald-300/80 font-medium">Detect • Track • Protect</p>
+              <p className="text-xs text-emerald-300/80 font-medium">{t('tagline')}</p>
             </div>
           </div>
           {isDemoMode && (
             <div className="mt-3 py-1 px-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-between text-[11px] text-amber-300">
               <span className="font-semibold flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                DEMO MODE ACTIVE
+                {t('demo_mode_active')}
               </span>
-              <span className="text-[10px] text-amber-200/70">Judge View</span>
+              <span className="text-[10px] text-amber-200/70">{t('judge_view')}</span>
             </div>
           )}
         </div>
@@ -155,15 +155,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 ) : (
                   <WifiOff className="w-3.5 h-3.5 text-amber-400" />
                 )}
-                {isOnline ? 'Online Synced' : 'Offline Mode'}
+                {isOnline ? t('online_synced') : t('offline_mode')}
               </span>
-              <span className="text-[10px] text-emerald-400/80 font-mono">SQLite Local</span>
+              <span className="text-[10px] text-emerald-400/80 font-mono">{t('sqlite_local')}</span>
             </div>
 
             {pendingSyncCount > 0 && (
               <div className="pt-2 border-t border-emerald-800/40 flex items-center justify-between">
                 <span className="text-[11px] text-amber-300">
-                  {pendingSyncCount} queued action(s)
+                  {pendingSyncCount} {t('queued_actions')}
                 </span>
                 <button
                   onClick={syncPendingQueue}
@@ -171,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-semibold flex items-center gap-1 disabled:opacity-50"
                 >
                   <RefreshCw className="w-3 h-3" />
-                  Sync
+                  {t('sync')}
                 </button>
               </div>
             )}

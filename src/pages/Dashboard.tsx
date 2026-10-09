@@ -3,15 +3,10 @@ import {
   Sprout,
   ScanLine,
   AlertTriangle,
-  CheckCircle2,
-  Clock,
   CloudSun,
   ArrowRight,
-  TrendingUp,
   MapPin,
-  Calendar,
   Sparkles,
-  RefreshCw,
   Droplets,
   Wind,
   ShieldCheck,
@@ -33,12 +28,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenNewScan,
   onOpenNewField
 }) => {
-  const { fields, scans, alerts, activeField, isDemoMode, refreshData, t } = useApp();
+  const { fields, scans, activeField, isDemoMode, t, tCrop, tDisease, tSeverity, tStatus } = useApp();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [risk, setRisk] = useState<DiseaseRiskData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(false);
 
-  // Load weather and risk for active field
   useEffect(() => {
     if (activeField) {
       setLoadingWeather(true);
@@ -59,6 +53,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const totalScansCount = scans.length;
   const recentScans = scans.slice(0, 4);
 
+  const getSeverityLabel = (sev: string) => {
+    switch (sev) {
+      case 'Severe':
+        return t('severe');
+      case 'Moderate':
+        return t('moderate');
+      case 'Mild':
+        return t('mild');
+      default:
+        return t('none_healthy');
+    }
+  };
+
+  const getStatusLabel = (status?: string) => {
+    switch (status) {
+      case 'critical':
+        return t('critical');
+      case 'moderate':
+        return t('watchlist');
+      case 'healthy':
+        return t('healthy');
+      default:
+        return t('uninspected');
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Banner / Welcome card */}
@@ -67,37 +87,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-300/30">
-                Kisan AI Field Station
+                {t('kisan_station')}
               </span>
               {isDemoMode && (
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-200 border border-amber-300/30 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-amber-400" />
-                  DEMO DATA LOADED
+                  {t('demo_badge')}
                 </span>
               )}
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              AgroScan AI Field Monitor
+              {t('dashboard_welcome_title')}
             </h2>
             <p className="text-emerald-100/90 text-sm leading-relaxed">
-              Detect foliar diseases early, track historical symptom trajectory, and receive real-time epidemiological weather risk warnings calibrated for Indian agriculture.
+              {t('dashboard_welcome_desc')}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={onOpenNewScan}
-              className="px-5 py-3 rounded-2xl bg-white text-emerald-950 font-bold text-sm hover:bg-emerald-50 active:scale-95 shadow-lg shadow-black/20 flex items-center gap-2 transition-transform"
+              className="px-5 py-3 rounded-2xl bg-white text-emerald-950 font-bold text-sm hover:bg-emerald-50 active:scale-95 shadow-lg shadow-black/20 flex items-center gap-2 transition-transform cursor-pointer"
             >
               <ScanLine className="w-4 h-4 text-emerald-700" />
-              Start Crop Scan
+              {t('start_ai_scan')}
             </button>
             <button
               onClick={onOpenNewField}
-              className="px-4 py-3 rounded-2xl bg-emerald-900/60 hover:bg-emerald-900 text-white font-semibold text-sm border border-emerald-600/40 flex items-center gap-2 transition-colors"
+              className="px-4 py-3 rounded-2xl bg-emerald-900/60 hover:bg-emerald-900 text-white font-semibold text-sm border border-emerald-600/40 flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Sprout className="w-4 h-4" />
-              + Register Field
+              {t('register_new_field')}
             </button>
           </div>
         </div>
@@ -112,11 +132,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Registered Fields
+              {t('registered_fields')}
             </p>
             <p className="text-2xl font-bold text-slate-900">{fields.length}</p>
             <p className="text-[11px] text-slate-500">
-              Total {fields.reduce((acc, f) => acc + f.area, 0).toFixed(1)} acres monitored
+              {t('total_area_monitored', { area: fields.reduce((acc, f) => acc + f.area, 0).toFixed(1) })}
             </p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -128,10 +148,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total AI Scans
+              {t('total_scans')}
             </p>
             <p className="text-2xl font-bold text-slate-900">{totalScansCount}</p>
-            <p className="text-[11px] text-emerald-600 font-medium">Vision & Gemini Guard</p>
+            <p className="text-[11px] text-emerald-600 font-medium">{t('vision_guard')}</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center">
             <ScanLine className="w-6 h-6" />
@@ -142,10 +162,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Urgent Attention
+              {t('inspections_needed')}
             </p>
             <p className="text-2xl font-bold text-rose-600">{urgentFields.length}</p>
-            <p className="text-[11px] text-slate-500">Fields requiring inspection</p>
+            <p className="text-[11px] text-slate-500">{t('fields_requiring_inspection')}</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
             <AlertTriangle className="w-6 h-6" />
@@ -156,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Disease Risk Level
+              {t('disease_risk_level')}
             </p>
             <p
               className={`text-2xl font-bold ${
@@ -167,9 +187,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   : 'text-emerald-700'
               }`}
             >
-              {risk?.riskCategory || 'NORMAL'}
+              {risk?.riskCategory === 'HIGH'
+                ? t('severe')
+                : risk?.riskCategory === 'MODERATE'
+                ? t('moderate')
+                : t('healthy')}
             </p>
-            <p className="text-[11px] text-slate-500">Open-Meteo Microclimate</p>
+            <p className="text-[11px] text-slate-500">{t('open_meteo_microclimate')}</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
             <CloudSun className="w-6 h-6" />
@@ -185,29 +209,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Recent Crop Diagnostic Scans</h3>
-                <p className="text-xs text-slate-500">Latest disease predictions & confidence levels</p>
+                <h3 className="text-base font-bold text-slate-900">{t('recent_scans')}</h3>
+                <p className="text-xs text-slate-500">{t('latest_predictions')}</p>
               </div>
               <button
                 onClick={() => onNavigate('history')}
-                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
               >
-                View All Scans <ArrowRight className="w-3.5 h-3.5" />
+                {t('view_all_scans')} <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {recentScans.length === 0 ? (
               <div className="py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl">
                 <ScanLine className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-700">No crop scans recorded yet</p>
+                <p className="text-sm font-semibold text-slate-700">{t('no_scans_recorded')}</p>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-4">
-                  Take a photo of crop foliage or select a sample image to diagnose diseases.
+                  {t('no_scans_desc')}
                 </p>
                 <button
                   onClick={onOpenNewScan}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
                 >
-                  Start First Scan
+                  {t('start_first_scan')}
                 </button>
               </div>
             ) : (
@@ -233,10 +257,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-slate-900">
-                            {scan.predictedCondition}
+                            {tDisease(scan.predictedCondition)}
                           </span>
                           <span className="text-xs font-medium text-slate-500">
-                            • {scan.cropType}
+                            • {tCrop(scan.cropType)}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 font-medium">{scan.fieldName}</p>
@@ -252,7 +276,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between text-xs text-slate-500">
                       <span className="font-semibold text-slate-700">
-                        Severity: {scan.severity}
+                        {t('severity')}: {getSeverityLabel(scan.severity)}
                       </span>
                       <span className="text-[11px] text-slate-400">
                         {new Date(scan.createdAt).toLocaleDateString()}
@@ -268,25 +292,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Monitored Fields</h3>
-                <p className="text-xs text-slate-500">Spatial acreage & current health status</p>
+                <h3 className="text-base font-bold text-slate-900">{t('monitored_fields')}</h3>
+                <p className="text-xs text-slate-500">{t('spatial_acreage')}</p>
               </div>
               <button
                 onClick={() => onNavigate('live_tracking')}
-                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
               >
-                Open Live Map <ArrowRight className="w-3.5 h-3.5" />
+                {t('open_live_map')} <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {fields.length === 0 ? (
               <div className="py-8 text-center border-2 border-dashed border-slate-200 rounded-2xl">
-                <p className="text-sm font-semibold text-slate-600 mb-2">No fields registered</p>
+                <p className="text-sm font-semibold text-slate-600 mb-2">{t('no_scans_recorded')}</p>
                 <button
                   onClick={onOpenNewField}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold cursor-pointer"
                 >
-                  Register First Field
+                  {t('register_first_field')}
                 </button>
               </div>
             ) : (
@@ -307,12 +331,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             : 'bg-emerald-100 text-emerald-700'
                         }`}
                       >
-                        {field.healthStatus || 'Healthy'}
+                        {getStatusLabel(field.healthStatus)}
                       </span>
-                      <span className="text-xs font-bold text-slate-700">{field.area} ac</span>
+                      <span className="text-xs font-bold text-slate-700">{field.area} {t('ac')}</span>
                     </div>
                     <p className="font-bold text-sm text-slate-900 truncate">{field.name}</p>
-                    <p className="text-xs text-slate-500 mb-2">{field.cropType} Crop</p>
+                    <p className="text-xs text-slate-500 mb-2">{tCrop(field.cropType)}</p>
                     <div className="flex items-center gap-1 text-[11px] text-slate-400">
                       <MapPin className="w-3 h-3 text-slate-400" />
                       <span>{field.latitude.toFixed(4)}, {field.longitude.toFixed(4)}</span>
@@ -330,8 +354,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Live Microclimate</h3>
-                <p className="text-xs text-slate-500">{activeField?.name || 'Local Field Station'}</p>
+                <h3 className="text-base font-bold text-slate-900">{t('live_microclimate')}</h3>
+                <p className="text-xs text-slate-500">{activeField?.name || t('local_field_station')}</p>
               </div>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
                 Open-Meteo
@@ -345,7 +369,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <span className="text-3xl font-extrabold text-slate-900">
                       {weather.current.temperature_2m.toFixed(1)}°C
                     </span>
-                    <p className="text-xs text-slate-500 font-medium">Air Temperature</p>
+                    <p className="text-xs text-slate-500 font-medium">{t('air_temperature')}</p>
                   </div>
                   <CloudSun className="w-10 h-10 text-emerald-700" />
                 </div>
@@ -353,7 +377,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5 text-blue-500" /> Humidity
+                      <Droplets className="w-3.5 h-3.5 text-blue-500" /> {t('humidity')}
                     </span>
                     <p className="text-base font-bold text-slate-800 mt-0.5">
                       {weather.current.relative_humidity_2m}%
@@ -361,7 +385,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1">
-                      <Wind className="w-3.5 h-3.5 text-teal-500" /> Wind Speed
+                      <Wind className="w-3.5 h-3.5 text-teal-500" /> {t('wind_speed')}
                     </span>
                     <p className="text-base font-bold text-slate-800 mt-0.5">
                       {weather.current.wind_speed_10m} km/h
@@ -372,7 +396,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {/* 3-day forecast mini strip */}
                 {weather.daily && (
                   <div className="pt-2 border-t border-slate-100">
-                    <p className="text-xs font-semibold text-slate-700 mb-2">3-Day Forecast</p>
+                    <p className="text-xs font-semibold text-slate-700 mb-2">{t('three_day_forecast')}</p>
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       {weather.daily.time.slice(0, 3).map((day, idx) => (
                         <div key={day} className="p-2 rounded-xl bg-slate-50 border border-slate-100">
@@ -391,15 +415,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             ) : (
               <div className="py-6 text-center text-xs text-slate-400">
-                {loadingWeather ? 'Fetching Open-Meteo weather...' : 'Select a field to view live weather.'}
+                {loadingWeather ? t('fetching_weather') : t('select_field_map_prompt')}
               </div>
             )}
 
             <button
               onClick={() => onNavigate('risk')}
-              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-colors flex items-center justify-center gap-1"
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
             >
-              Epidemiological Risk Model <ChevronRight className="w-4 h-4" />
+              {t('epidemiological_risk_model')} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
@@ -407,17 +431,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-emerald-900 text-white rounded-3xl p-6 shadow-sm space-y-3">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h3 className="font-bold text-sm">Agronomic Protection Note</h3>
+              <h3 className="font-bold text-sm">{t('agronomic_protection_note')}</h3>
             </div>
             <p className="text-xs text-emerald-100 leading-relaxed">
-              High atmospheric moisture (&gt;80%) increases fungal sporulation. Avoid overhead spraying late in the afternoon to prevent prolonged leaf wetness.
+              {t('agronomic_note_text')}
             </p>
             <div className="pt-2 flex items-center justify-between text-xs">
               <button
                 onClick={() => onNavigate('treatment')}
-                className="text-emerald-300 hover:text-white font-semibold underline"
+                className="text-emerald-300 hover:text-white font-semibold underline cursor-pointer"
               >
-                Open Treatment Advisor →
+                {t('open_treatment_advisor')}
               </button>
             </div>
           </div>

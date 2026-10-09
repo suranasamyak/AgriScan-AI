@@ -7,11 +7,6 @@ import {
   AlertTriangle,
   ShieldCheck,
   Info,
-  Calendar,
-  RefreshCw,
-  Sun,
-  CloudLightning,
-  MapPin,
   CheckCircle2
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -19,7 +14,7 @@ import { api } from '../services/api';
 import { WeatherData, DiseaseRiskData } from '../types';
 
 export const RiskForecast: React.FC = () => {
-  const { fields, activeField, setActiveField } = useApp();
+  const { fields, activeField, setActiveField, t, tCrop, tDisease } = useApp();
   const [selectedFieldId, setSelectedFieldId] = useState<string>(activeField?.id || (fields[0]?.id || ''));
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [risk, setRisk] = useState<DiseaseRiskData | null>(null);
@@ -41,25 +36,38 @@ export const RiskForecast: React.FC = () => {
 
   const targetField = fields.find((f) => f.id === selectedFieldId) || fields[0];
 
+  const getRiskLabel = (cat: string) => {
+    switch (cat) {
+      case 'CRITICAL':
+        return t('risk_critical');
+      case 'HIGH':
+        return t('risk_high');
+      case 'MODERATE':
+        return t('risk_moderate');
+      default:
+        return t('risk_low');
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            Disease Risk Forecast & Microclimate
+            {t('risk_title')}
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
-              Open-Meteo Live API
+              {t('badge_open_meteo')}
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            Real-time atmospheric humidity, temperature, and rainfall correlation for disease outbreak early warning.
+            {t('risk_sub')}
           </p>
         </div>
 
         {/* Field Selector */}
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-600">Select Field:</label>
+          <label className="text-xs font-semibold text-slate-600">{t('select_field_opt')}</label>
           <select
             value={selectedFieldId}
             onChange={(e) => {
@@ -67,11 +75,11 @@ export const RiskForecast: React.FC = () => {
               const f = fields.find((item) => item.id === e.target.value);
               if (f) setActiveField(f);
             }}
-            className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:border-emerald-600"
+            className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:border-emerald-600 cursor-pointer"
           >
             {fields.map((f) => (
               <option key={f.id} value={f.id}>
-                {f.name} ({f.cropType})
+                {f.name} ({tCrop(f.cropType)})
               </option>
             ))}
           </select>
@@ -91,7 +99,7 @@ export const RiskForecast: React.FC = () => {
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className={`text-xs uppercase font-extrabold px-3 py-1 rounded-full ${
                     risk.riskCategory === 'HIGH' || risk.riskCategory === 'CRITICAL'
@@ -101,19 +109,19 @@ export const RiskForecast: React.FC = () => {
                       : 'bg-emerald-600 text-white'
                   }`}
                 >
-                  {risk.riskCategory} OUTBREAK RISK
+                  {getRiskLabel(risk.riskCategory)} {t('outbreak_risk')}
                 </span>
                 <span className="text-xs font-bold text-slate-600 font-mono">
-                  {targetField?.name} ({targetField?.cropType})
+                  {targetField?.name} ({tCrop(targetField?.cropType || '')})
                 </span>
               </div>
               <h3 className="text-2xl font-black mt-2 tracking-tight">
-                Watch Pathogen: {risk.primaryRiskPathogen}
+                {t('watch_pathogen')} {tDisease(risk.primaryRiskPathogen)}
               </h3>
             </div>
 
             <div className="text-left sm:text-right text-xs">
-              <span className="text-slate-500">Evaluation Timestamp</span>
+              <span className="text-slate-500">{t('evaluation_time')}</span>
               <p className="font-mono font-medium text-slate-700">
                 {new Date(risk.assessmentTimestamp).toLocaleString()}
               </p>
@@ -125,7 +133,7 @@ export const RiskForecast: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-black/5 space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 text-amber-600" />
-                Contributing Meteorological Factors
+                {t('contributing_factors')}
               </h4>
               <ul className="space-y-1.5 text-xs text-slate-700">
                 {risk.riskFactors.map((rf, idx) => (
@@ -140,7 +148,7 @@ export const RiskForecast: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-black/5 space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                Proactive Agricultural Actions
+                {t('proactive_actions')}
               </h4>
               <ul className="space-y-1.5 text-xs text-slate-700">
                 {risk.actionItems.map((act, idx) => (
@@ -153,11 +161,11 @@ export const RiskForecast: React.FC = () => {
             </div>
           </div>
 
-          {/* Mandatory Scientific Disclaimer from prompt */}
+          {/* Scientific Disclaimer */}
           <div className="p-3.5 rounded-2xl bg-white/60 border border-black/5 text-xs text-slate-600 flex items-start gap-2">
             <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <b>Important:</b> {risk.scientificDisclaimer}
+              <b>{t('risk_disclaimer_title')}</b> {t('risk_disclaimer_text')}
             </p>
           </div>
         </div>
@@ -169,10 +177,10 @@ export const RiskForecast: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 className="font-bold text-base text-slate-900">
-                Live Field Microclimate Station
+                {t('microclimate_station')}
               </h3>
               <p className="text-xs text-slate-500">
-                Coordinates: {weather.location.latitude.toFixed(4)}° N,{' '}
+                {t('coordinates')}: {weather.location.latitude.toFixed(4)}° N,{' '}
                 {weather.location.longitude.toFixed(4)}° E
               </p>
             </div>
@@ -185,7 +193,7 @@ export const RiskForecast: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <Thermometer className="w-6 h-6 text-rose-500 mx-auto mb-1" />
-              <span className="text-xs text-slate-500">Air Temp</span>
+              <span className="text-xs text-slate-500">{t('air_temperature')}</span>
               <p className="text-xl font-extrabold text-slate-900 mt-0.5">
                 {weather.current.temperature_2m.toFixed(1)}°C
               </p>
@@ -193,7 +201,7 @@ export const RiskForecast: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <Droplets className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-              <span className="text-xs text-slate-500">Relative Humidity</span>
+              <span className="text-xs text-slate-500">{t('humidity')}</span>
               <p className="text-xl font-extrabold text-slate-900 mt-0.5">
                 {weather.current.relative_humidity_2m}%
               </p>
@@ -201,7 +209,7 @@ export const RiskForecast: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <CloudRain className="w-6 h-6 text-teal-500 mx-auto mb-1" />
-              <span className="text-xs text-slate-500">Precipitation</span>
+              <span className="text-xs text-slate-500">{t('precipitation')}</span>
               <p className="text-xl font-extrabold text-slate-900 mt-0.5">
                 {weather.current.precipitation} mm
               </p>
@@ -209,7 +217,7 @@ export const RiskForecast: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
               <Wind className="w-6 h-6 text-emerald-600 mx-auto mb-1" />
-              <span className="text-xs text-slate-500">Wind Speed</span>
+              <span className="text-xs text-slate-500">{t('wind_speed')}</span>
               <p className="text-xl font-extrabold text-slate-900 mt-0.5">
                 {weather.current.wind_speed_10m} km/h
               </p>
@@ -220,7 +228,7 @@ export const RiskForecast: React.FC = () => {
           {weather.daily && (
             <div className="space-y-2 pt-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                7-Day Agronomic Outlook
+                {t('seven_day_outlook')}
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                 {weather.daily.time.map((day, idx) => (
@@ -233,7 +241,7 @@ export const RiskForecast: React.FC = () => {
                       {weather.daily.temperature_2m_max[idx]}° / {weather.daily.temperature_2m_min[idx]}°
                     </p>
                     <p className="text-[11px] text-blue-600 font-medium">
-                      Rain: {weather.daily.precipitation_sum[idx]} mm
+                      {t('rain')} {weather.daily.precipitation_sum[idx]} mm
                     </p>
                   </div>
                 ))}

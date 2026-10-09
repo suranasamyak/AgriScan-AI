@@ -7,13 +7,8 @@ import {
   CheckCircle2,
   ShieldAlert,
   Camera,
-  MapPin,
   RefreshCw,
-  Sparkles,
-  Info,
-  ChevronRight,
-  FileCheck2,
-  HelpCircle
+  Sparkles
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
@@ -23,7 +18,7 @@ import { ConfidenceGuardBadge } from '../components/ConfidenceGuardBadge';
 // Sample agricultural disease images with realistic SVG leaf textures for rapid hackathon testing
 const SAMPLE_TEST_CASES = [
   {
-    name: 'Tomato Early Blight',
+    nameKey: 'Tomato Early Blight',
     crop: 'Tomato',
     symptom: 'Concentric target rings on lower leaves, yellow halo',
     svgColor: '#92400e',
@@ -31,7 +26,7 @@ const SAMPLE_TEST_CASES = [
     lesionStyle: 'circles'
   },
   {
-    name: 'Cotton Bacterial Blight',
+    nameKey: 'Cotton Bacterial Blight',
     crop: 'Cotton',
     symptom: 'Angular water-soaked spots bounded by veins, black vein arm',
     svgColor: '#1c1917',
@@ -39,7 +34,7 @@ const SAMPLE_TEST_CASES = [
     lesionStyle: 'angular'
   },
   {
-    name: 'Soybean Asian Rust',
+    nameKey: 'Soybean Asian Rust',
     crop: 'Soybean',
     symptom: 'Small brown pustules on leaf undersides, premature defoliation',
     svgColor: '#78350f',
@@ -47,7 +42,7 @@ const SAMPLE_TEST_CASES = [
     lesionStyle: 'pustules'
   },
   {
-    name: 'Wheat Yellow Stripe Rust',
+    nameKey: 'Wheat Yellow Stripe Rust',
     crop: 'Wheat',
     symptom: 'Parallel linear yellow stripes on leaves, powdery rub-off',
     svgColor: '#ca8a04',
@@ -55,7 +50,7 @@ const SAMPLE_TEST_CASES = [
     lesionStyle: 'stripes'
   },
   {
-    name: 'Healthy Tomato Leaf',
+    nameKey: 'Healthy Tomato Leaf',
     crop: 'Tomato',
     symptom: 'Vibrant green, no spots, uniform chlorophyll',
     svgColor: '#15803d',
@@ -71,11 +66,9 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
-  // Background leaf blade
   ctx.fillStyle = testCase.lesionStyle === 'clean' ? '#166534' : '#22543d';
   ctx.fillRect(0, 0, 400, 400);
 
-  // Main vein
   ctx.strokeStyle = '#48bb78';
   ctx.lineWidth = 6;
   ctx.beginPath();
@@ -83,7 +76,6 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
   ctx.bezierCurveTo(200, 200, 190, 100, 200, 20);
   ctx.stroke();
 
-  // Secondary veins
   ctx.lineWidth = 2.5;
   for (let y = 60; y < 360; y += 40) {
     ctx.beginPath();
@@ -96,16 +88,12 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
     ctx.stroke();
   }
 
-  // Draw lesions
   if (testCase.lesionStyle === 'circles') {
-    // Early blight target rings
     for (const [cx, cy, r] of [[140, 160, 28], [270, 220, 36], [180, 280, 24]]) {
-      // Yellow halo
       ctx.fillStyle = 'rgba(234, 179, 8, 0.45)';
       ctx.beginPath();
       ctx.arc(cx, cy, r + 12, 0, Math.PI * 2);
       ctx.fill();
-      // Concentric rings
       ctx.fillStyle = '#78350f';
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -120,13 +108,11 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
       ctx.stroke();
     }
   } else if (testCase.lesionStyle === 'angular') {
-    // Cotton angular lesions
     ctx.fillStyle = '#451a03';
     for (const [x, y, w, h] of [[110, 120, 40, 30], [250, 180, 50, 40], [160, 240, 35, 25]]) {
       ctx.fillRect(x, y, w, h);
     }
   } else if (testCase.lesionStyle === 'pustules') {
-    // Rust pustules
     ctx.fillStyle = '#b45309';
     for (let i = 0; i < 40; i++) {
       const rx = 100 + (i * 37) % 200;
@@ -136,7 +122,6 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
       ctx.fill();
     }
   } else if (testCase.lesionStyle === 'stripes') {
-    // Wheat yellow stripes
     ctx.fillStyle = '#eab308';
     ctx.fillRect(150, 40, 8, 300);
     ctx.fillRect(170, 60, 6, 260);
@@ -148,7 +133,7 @@ function generateSampleImageDataUrl(testCase: typeof SAMPLE_TEST_CASES[0]): stri
 }
 
 export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onNavigate }) => {
-  const { fields, activeField, isDemoMode, refreshData } = useApp();
+  const { fields, activeField, isDemoMode, refreshData, t, tCrop, tDisease, tSymptom } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedFieldId, setSelectedFieldId] = useState<string>(activeField?.id || '');
@@ -162,18 +147,29 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
 
   const crops = ['Tomato', 'Cotton', 'Soybean', 'Wheat', 'Rice', 'Potato', 'Maize', 'Sugarcane', 'Chilli', 'Onion', 'Grape'];
 
+  const getSeverityLabel = (sev: string) => {
+    switch (sev) {
+      case 'Severe':
+        return t('severe');
+      case 'Moderate':
+        return t('moderate');
+      case 'Mild':
+        return t('mild');
+      default:
+        return t('none_healthy');
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate mime type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       setError('Unsupported file type. Please upload a JPEG, PNG, or WebP crop image.');
       return;
     }
 
-    // Validate size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       setError('Image file is too large. Maximum supported size is 10 MB.');
       return;
@@ -192,7 +188,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
   const handleSelectSample = (sample: typeof SAMPLE_TEST_CASES[0]) => {
     const dataUrl = generateSampleImageDataUrl(sample);
     setImagePreview(dataUrl);
-    setFileName(`${sample.name.replace(/\s+/g, '_')}.png`);
+    setFileName(`${sample.nameKey.replace(/\s+/g, '_')}.png`);
     setCropType(sample.crop);
     setSymptomsEntered(sample.symptom);
     setError(null);
@@ -235,20 +231,20 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            AI Crop Disease Scanner
+            {t('nav_title_scanner')}
             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300">
               Vision Model + Gemini Guard
             </span>
           </h2>
           <p className="text-xs text-slate-500">
-            Upload clear leaf photos to detect pathogens, estimate severity, and access IPM treatment.
+            {t('scanner_subtitle')}
           </p>
         </div>
 
         {isDemoMode && (
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>Judge Demo Mode Active</span>
+            <span>{t('judge_demo_active')}</span>
           </div>
         )}
       </div>
@@ -260,24 +256,24 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
           <div className="bg-white rounded-3xl border border-slate-200/80 p-5 shadow-sm space-y-4">
             <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
               <Camera className="w-4 h-4 text-emerald-700" />
-              1. Leaf Image Input
+              {t('leaf_image_input')}
             </h3>
 
             {/* Quick Sample Selector for Judging / Fast Demo */}
             <div>
               <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
-                Quick Test Samples (Instant Simulation)
+                {t('quick_test_samples')}
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 {SAMPLE_TEST_CASES.map((sample) => (
                   <button
-                    key={sample.name}
+                    key={sample.nameKey}
                     type="button"
                     onClick={() => handleSelectSample(sample)}
-                    className="p-2 rounded-xl border border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 text-left transition-all text-xs font-medium text-slate-800"
+                    className="p-2 rounded-xl border border-slate-200 hover:border-emerald-600 hover:bg-emerald-50 text-left transition-all text-xs font-medium text-slate-800 cursor-pointer"
                   >
-                    <span className="font-bold block truncate">{sample.name}</span>
-                    <span className="text-[10px] text-slate-500">{sample.crop}</span>
+                    <span className="font-bold block truncate">{tDisease(sample.nameKey)}</span>
+                    <span className="text-[10px] text-slate-500">{tCrop(sample.crop)}</span>
                   </button>
                 ))}
               </div>
@@ -305,10 +301,10 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                       className="w-full h-full object-contain"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold transition-opacity">
-                      Click to change image
+                      {t('click_to_change')}
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 font-mono truncate">{fileName || 'Custom Leaf Photo'}</p>
+                  <p className="text-xs text-slate-600 font-mono truncate">{fileName || 'Leaf Photo'}</p>
                 </div>
               ) : (
                 <div className="py-6 space-y-2">
@@ -317,10 +313,10 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-800">
-                      Upload Leaf Image (JPEG, PNG, WebP)
+                      {t('upload_box_title')}
                     </p>
                     <p className="text-[11px] text-slate-500">
-                      Take a clear macro photo of diseased foliage
+                      {t('upload_box_sub')}
                     </p>
                   </div>
                 </div>
@@ -332,7 +328,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                    Crop Type *
+                    {t('crop_type')}
                   </label>
                   <select
                     value={cropType}
@@ -341,7 +337,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                   >
                     {crops.map((c) => (
                       <option key={c} value={c}>
-                        {c}
+                        {tCrop(c)}
                       </option>
                     ))}
                   </select>
@@ -349,14 +345,14 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
 
                 <div>
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                    Associate Field
+                    {t('associate_field')}
                   </label>
                   <select
                     value={selectedFieldId}
                     onChange={(e) => setSelectedFieldId(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-white focus:outline-none focus:border-emerald-600"
                   >
-                    <option value="">Select Field...</option>
+                    <option value="">{t('select_field')}</option>
                     {fields.map((f) => (
                       <option key={f.id} value={f.id}>
                         {f.name}
@@ -368,11 +364,11 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
 
               <div>
                 <label className="text-[11px] font-semibold text-slate-600 block mb-1">
-                  Observed Symptoms (Optional context for AI)
+                  {t('observed_symptoms_opt')}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Concentric ring spots, yellow halo on lower leaf"
+                  placeholder={t('symptoms_placeholder')}
                   value={symptomsEntered}
                   onChange={(e) => setSymptomsEntered(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-emerald-600"
@@ -391,17 +387,17 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !imagePreview}
-              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-sm shadow-md shadow-emerald-900/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-sm shadow-md shadow-emerald-900/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {isAnalyzing ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Analyzing Foliage Architecture...</span>
+                  <span>{t('analyzing_leaf')}</span>
                 </>
               ) : (
                 <>
                   <ScanLine className="w-4 h-4" />
-                  <span>Execute AI Disease Scan</span>
+                  <span>{t('execute_scan')}</span>
                 </>
               )}
             </button>
@@ -416,14 +412,14 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                 <div>
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Diagnostic Diagnosis
+                    {t('diagnostic_diagnosis')}
                   </span>
                   <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    {currentResult.predictedCondition}
+                    {tDisease(currentResult.predictedCondition)}
                   </h3>
                   {currentResult.scientificName && (
                     <p className="text-xs text-emerald-800 font-serif italic">
-                      Pathogen: {currentResult.scientificName}
+                      {t('pathogen')}: {currentResult.scientificName}
                     </p>
                   )}
                 </div>
@@ -440,11 +436,10 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                 <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-1.5">
                   <div className="font-bold flex items-center gap-1.5 text-amber-800">
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    AI Confidence Guard Triggered (&lt; 70% threshold)
+                    {t('confidence_guard_triggered')}
                   </div>
                   <p>
-                    Image quality, lighting variation, or ambiguous lesion patterns prevented high confidence.
-                    Please take a closer, well-lit macro photo or consult local KVK agricultural extension.
+                    {t('confidence_guard_desc')}
                   </p>
                 </div>
               )}
@@ -452,7 +447,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               {/* Core Metrics Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-[11px] text-slate-500 font-medium">Severity</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{t('severity')}</span>
                   <p
                     className={`text-base font-extrabold mt-0.5 ${
                       currentResult.severity === 'Severe'
@@ -462,12 +457,12 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                         : 'text-emerald-700'
                     }`}
                   >
-                    {currentResult.severity}
+                    {getSeverityLabel(currentResult.severity)}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-[11px] text-slate-500 font-medium">Affected Area</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{t('affected_leaf_area')}</span>
                   <p className="text-base font-extrabold text-slate-800 mt-0.5">
                     {currentResult.affectedAreaPercentage
                       ? `${currentResult.affectedAreaPercentage.toFixed(1)}%`
@@ -476,14 +471,14 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-[11px] text-slate-500 font-medium">Model Pipeline</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{t('model_pipeline')}</span>
                   <p className="text-xs font-bold text-slate-800 mt-0.5 truncate font-mono">
                     {currentResult.modelName}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                  <span className="text-[11px] text-slate-500 font-medium">Version</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{t('version')}</span>
                   <p className="text-xs font-bold text-slate-800 mt-0.5 font-mono">
                     {currentResult.modelVersion}
                   </p>
@@ -494,7 +489,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               {currentResult.symptoms && currentResult.symptoms.length > 0 && (
                 <div className="space-y-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Observed Pathological Symptoms
+                    {t('observed_symptoms_heading')}
                   </h4>
                   <ul className="space-y-1.5">
                     {currentResult.symptoms.map((s, idx) => (
@@ -503,7 +498,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                         className="text-xs text-slate-700 flex items-start gap-2 bg-emerald-50/50 p-2 rounded-xl border border-emerald-100/60"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                        <span>{s}</span>
+                        <span>{tSymptom(s)}</span>
                       </li>
                     ))}
                   </ul>
@@ -515,7 +510,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                 currentResult.alternativeDiagnoses.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                      Differential Diagnoses (Alternative Hypotheses)
+                      {t('differential_diagnoses')}
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {currentResult.alternativeDiagnoses.map((alt, idx) => (
@@ -523,7 +518,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                           key={idx}
                           className="p-2.5 rounded-xl border border-slate-200 text-xs flex items-center justify-between"
                         >
-                          <span className="text-slate-800 font-medium">{alt.condition}</span>
+                          <span className="text-slate-800 font-medium">{tDisease(alt.condition)}</span>
                           <span className="font-mono text-slate-500 text-[11px]">
                             {alt.confidence.toFixed(1)}%
                           </span>
@@ -537,7 +532,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               {currentResult.recommendedSteps && (
                 <div className="space-y-2 pt-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                    Recommended IPM Treatment Actions
+                    {t('recommended_ipm_heading')}
                   </h4>
                   <div className="space-y-1.5">
                     {currentResult.recommendedSteps.map((step, idx) => (
@@ -560,7 +555,7 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
                 <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
                   <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
                     <ShieldAlert className="w-4 h-4 text-amber-600" />
-                    <span>Farmer Safety Guidance (Pre-Harvest Interval & PPE)</span>
+                    <span>{t('farmer_safety_heading')}</span>
                   </div>
                   <ul className="text-xs text-amber-950 space-y-1 list-disc list-inside">
                     {currentResult.safetyGuidance.map((sg, idx) => (
@@ -573,22 +568,22 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               {/* Quick Link to Timeline & Treatment Advisor */}
               <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <span className="text-slate-500 font-mono">
-                  Scan Record ID: {currentResult.id}
+                  {t('scan_id')} {currentResult.id}
                 </span>
                 <div className="flex items-center gap-3">
                   {onNavigate && (
                     <>
                       <button
                         onClick={() => onNavigate('treatment')}
-                        className="font-bold text-emerald-700 hover:underline"
+                        className="font-bold text-emerald-700 hover:underline cursor-pointer"
                       >
-                        Calculate Treatment Cost →
+                        {t('calculate_treatment_cost')}
                       </button>
                       <button
                         onClick={() => onNavigate('timeline')}
-                        className="font-bold text-emerald-700 hover:underline"
+                        className="font-bold text-emerald-700 hover:underline cursor-pointer"
                       >
-                        Track in Timeline →
+                        {t('track_in_timeline')}
                       </button>
                     </>
                   )}
@@ -600,9 +595,9 @@ export const CropScanner: React.FC<{ onNavigate?: (tab: any) => void }> = ({ onN
               <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
                 <ScanLine className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-base text-slate-800">Diagnostic Station Ready</h3>
+              <h3 className="font-bold text-base text-slate-800">{t('diagnostic_station_ready')}</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                Select a quick sample from the left or upload a photo from your mobile camera or field device. The AI will evaluate foliar lesion morphology, cross-reference state agricultural packages, and apply confidence guards.
+                {t('diagnostic_station_desc')}
               </p>
             </div>
           )}

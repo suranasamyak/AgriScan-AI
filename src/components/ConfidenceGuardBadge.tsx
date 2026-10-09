@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, AlertTriangle, HelpCircle, CheckCircle } from 'lucide-react';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 interface ConfidenceGuardBadgeProps {
   confidence: number;
@@ -12,9 +13,23 @@ export const ConfidenceGuardBadge: React.FC<ConfidenceGuardBadgeProps> = ({
   status,
   isDemo
 }) => {
-  const isHighConfidence = confidence >= 80;
+  const { t } = useApp();
   const isModerate = confidence >= 70 && confidence < 80;
   const isUncertain = confidence < 70 || status === 'needs_confirmation';
+
+  const getStatusLabel = () => {
+    switch (status) {
+      case 'needs_confirmation':
+        return t('needs_confirmation');
+      case 'expert_reviewed':
+        return t('expert_reviewed');
+      case 'demo_simulation':
+        return t('demo_simulation');
+      case 'analysed':
+      default:
+        return t('ai_analysed');
+    }
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -33,7 +48,7 @@ export const ConfidenceGuardBadge: React.FC<ConfidenceGuardBadgeProps> = ({
         ) : (
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
         )}
-        <span>Confidence: {confidence.toFixed(1)}%</span>
+        <span>{t('confidence')}: {confidence.toFixed(1)}%</span>
       </div>
 
       {/* Guard Status */}
@@ -48,20 +63,12 @@ export const ConfidenceGuardBadge: React.FC<ConfidenceGuardBadgeProps> = ({
             : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
         }`}
       >
-        <span>
-          {status === 'needs_confirmation'
-            ? 'Needs Confirmation (Low Confidence)'
-            : status === 'expert_reviewed'
-            ? 'Expert Reviewed'
-            : status === 'demo_simulation'
-            ? 'Demo Simulation'
-            : 'AI Analysed'}
-        </span>
+        <span>{getStatusLabel()}</span>
       </div>
 
       {isDemo && (
         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-white">
-          DEMO DATA
+          {t('demo_badge')}
         </span>
       )}
     </div>
